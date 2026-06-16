@@ -76,7 +76,7 @@ This simulation work is Phase 1 of a full IMU + GPS navigation system:
 
 | Phase | Goal |
 |-------|------|
-| **1 — Done** | Python KF simulation (altitude + 3D trajectory) |
+| **1** | Python KF simulation (altitude + 3D trajectory) |
 | **2** | Hardware bring-up: ICM-42688-P IMU via SPI + u-blox NEO-M9N GPS via UART on ESP32 |
 | **3** | Port KF to embedded C; fuse live IMU + GPS at 500 Hz predict / async GPS update |
 | **4** | Custom PCB: ESP32 + IMU + GPS + microSD + RFM95W LoRa in KiCad |
