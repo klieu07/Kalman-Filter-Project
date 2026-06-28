@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nav Module — Live Position</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; }
+  #map { height: 100%; width: 100%; background:#222; }
+  #hud {
+    position: absolute; top: 12px; left: 12px; z-index: 1000;
+    background: rgba(20,24,32,0.85); color: #e8eef6; padding: 10px 14px;
+    border-radius: 8px; font-size: 13px; line-height: 1.5;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4); min-width: 170px;
+  }
+  #hud b { color: #6cb6ff; }
+  .val { font-variant-numeric: tabular-nums; }
+  #status { font-size: 11px; color:#9fb0c4; margin-top:4px; }
+</style>
+</head>
+<body>
+<div id="hud">
+  <div><b>NAV MODULE</b></div>
+  <div>Fix: <span class="val" id="fix">--</span> &nbsp; Sats: <span class="val" id="sats">--</span></div>
+  <div>Uncertainty: <span class="val" id="radius">--</span> m</div>
+  <div>Lat: <span class="val" id="lat">--</span></div>
+  <div>Lon: <span class="val" id="lon">--</span></div>
+  <div id="status">waiting for data…</div>
+</div>
+<div id="map"></div>
+
+<script>
+const map = L.map('map', { zoomControl: true }).setView([0, 0], 2);
+
+// street + satellite layers (need internet for tiles)
+const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '© OpenStreetMap'
+}).addTo(map);
+const sat = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 19, attribution: 'Esri' });
+L.control.layers({ "Street": street, "Satellite": sat }).addTo(map);
+
+let marker = null;
+let circle = null;
+let trailLine = null;
+let centered = false;
+
+async function poll() {
+  try {
+    // cache-bust so we always read the freshest file
+    const res = await fetch('live_data.json?t=' + Date.now());
+    if (!res.ok) throw new Error('no file');
+    const d = await res.json();
+
+    document.getElementById('fix').textContent = d.fix;
+    document.getElementById('sats').textContent = d.sats;
+    document.getElementById('radius').textContent = d.radius_m.toFixed(1);
+    document.getElementById('lat').textContent = d.lat.toFixed(6);
+    document.getElementById('lon').textContent = d.lon.toFixed(6);
+    document.getElementById('status').textContent = 'live • ' + new Date().toLocaleTimeString();
+
+    if (d.lat === 0 && d.lon === 0) return;   // no fix yet
+    const pos = [d.lat, d.lon];
+
+    // center once on first real fix (general area), then let user pan/zoom
+    if (!centered) { map.setView(pos, 17); centered = true; }
+
+    if (!marker) marker = L.circleMarker(pos, { radius: 5, color: '#1e6bff',
+                          fillColor:'#6cb6ff', fillOpacity: 1 }).addTo(map);
+    else marker.setLatLng(pos);
+
+    // the shrinking confidence circle = filter uncertainty
+    if (!circle) circle = L.circle(pos, { radius: d.radius_m, color: '#1e6bff',
+                          weight: 1.5, fillColor:'#1e6bff', fillOpacity: 0.12 }).addTo(map);
+    else { circle.setLatLng(pos); circle.setRadius(d.radius_m); }
+
+    // fused trail
+    if (d.trail && d.trail.length > 1) {
+      if (!trailLine) trailLine = L.polyline(d.trail, { color:'#1e6bff', weight:3, opacity:0.8 }).addTo(map);
+      else trailLine.setLatLngs(d.trail);
+    }
+  } catch (e) {
+    document.getElementById('status').textContent = 'no data file yet…';
+  }
+}
+
+setInterval(poll, 200);   // poll 5x/sec
+poll();
+</script>
+</body>
+</html>
