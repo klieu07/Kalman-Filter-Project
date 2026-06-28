@@ -39,23 +39,23 @@ The Kalman Filter is provably optimal (minimum mean squared error) under the ass
 ```
 ┌──────────────────────────┐      TCP/WiFi        ┌───────────────────────────┐
 │       ESP32 Hardware     │  ─────────────────►  │     Python Telemetry      │
-│                          │   CSV stream, ~50 Hz  │                           │
-│  ISM330DHCX IMU          │                       │  KalmanFilter3D           │
-│  u-blox GPS (1 Hz)       │                       │  ├── predict() @ IMU rate │
-│  Complementary Filter    │                       │  └── update()  @ GPS rate │
-│  SD card logger          │                       │                           │
-│  OLED display            │                       │  write live_data.json     │
-│  WiFi TCP server         │                       │  matplotlib 3D plot       │
-└──────────────────────────┘                       └────────────┬──────────────┘
-                                                                │  file poll (200 ms)
-                                                   ┌────────────▼──────────────┐
-                                                   │     Leaflet.js Web Map    │
-                                                   │                           │
-                                                   │  live position marker     │
-                                                   │  uncertainty circle       │
-                                                   │  fused path trail         │
-                                                   │  HUD: fix / sats / coords │
-                                                   └───────────────────────────┘
+│                          │   CSV stream, ~50 Hz │                           │
+│  ISM330DHCX IMU          │                      │  KalmanFilter3D           │
+│  u-blox GPS (1 Hz)       │                      │  ├── predict() @ IMU rate │
+│  Complementary Filter    │                      │  └── update()  @ GPS rate │
+│  SD card logger          │                      │                           │
+│  OLED display            │                      │  write live_data.json     │
+│  WiFi TCP server         │                      │  matplotlib 3D plot       │
+└──────────────────────────┘                      └────────────┬──────────────┘
+                                                               │  file poll (200 ms)
+                                                  ┌────────────▼──────────────┐
+                                                  │     Leaflet.js Web Map    │
+                                                  │                           │
+                                                  │  live position marker     │
+                                                  │  uncertainty circle       │
+                                                  │  fused path trail         │
+                                                  │  HUD: fix / sats / coords │
+                                                  └───────────────────────────┘
 ```
 
 ---
