@@ -10,8 +10,8 @@
 #include "SparkFun_u-blox_GNSS_Arduino_Library.h"
 
 // ---------- WiFi ----------
-const char* WIFI_SSID = ".";          
-const char* WIFI_PASS = "fishes<3";
+// const char* WIFI_SSID = "WIFI";          
+// const char* WIFI_PASS = "PASSWORD";
 const uint16_t PORT = 3333;
 WiFiServer server(PORT);
 WiFiClient client;
